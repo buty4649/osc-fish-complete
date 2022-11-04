@@ -1,28 +1,42 @@
 class CompleteFish:
 
-  def __init__(self, name, output):
-    self.name = str(name)
-    self.output = output
+    def __init__(self, name, output):
+        self.name = str(name)
+        self.output = output
 
-  def write(self, cmdo, data):
-    self.output.write("set -l openstack_command {0}\n".format(cmdo))
-    self.output.write("""
-function __fish_complete_openstack
+    def write(self, cmdo, data):
+        self.output.write("complete -c openstack -e\n")
+        self.output.write(
+            "complete -c openstack -f -n '__fish_is_first_token' -a '{0}'\n".format(cmdo))
+
+        for subcommand, complete in data:
+            subcommand = subcommand.replace('_', ' ')
+            if complete.startswith("-"):
+                for opt in complete.split(" "):
+                    o = opt.replace("-", "")
+                    if opt.startswith("--"):
+                        self.output.write(
+                            "complete -c openstack -f -n '__fish_seen_subcommand_from {0}' -l '{1}'\n".format(subcommand, o))
+                    else:
+                        self.output.write(
+                            "complete -c openstack -f -n '__fish_seen_subcommand_from {0}' -s '{1}'\n".format(subcommand, o))
+
+        self.output.write("""
+function __fish_openstack_complete
   set -l cmd (commandline -opc)
-  # HACK: Handle and/or/not specially because they have hardcoded completion behavior
-  # that doesn't remove them from the commandline
-  if contains -- $cmd[1] and or not
-      set -e cmd[1]
-  end
-  set -e cmd[1]
   switch "$cmd"
 """)
-    for datum in data:
-      self.output.write('    case "{0}"\n'.format(datum[0].replace('_', ' ')))
-      self.output.write('      printf "%s\\n" {0}\n'.format(datum[1]))
 
-    self.output.write("  end\n")
-    self.output.write("end\n")
-    self.output.write("complete -f -c openstack\n")
-    self.output.write("complete -f -c openstack -a '(__fish_complete_openstack)'\n")
-    self.output.write('complete -f -c openstack -n "not __fish_seen_subcommand_from {0}" -a "{0}"\n'.format(cmdo))
+        for subcommand, complete in data:
+            if complete.startswith("-"):
+                continue
+            self.output.write("  case 'openstack {0}'\n".format(
+                subcommand.replace("_", " ")))
+
+            for c in complete.split(" "):
+                self.output.write('    printf "{0}\\n"\n'.format(c))
+
+        self.output.write("""end
+end
+complete -c openstack -x -a '(__fish_openstack_complete)'
+""")
