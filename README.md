@@ -1,12 +1,11 @@
 # osc-fish-complete
 `openstack complete` for fish shell
+PyPi: https://pypi.org/project/osc-fish-complete/
 
 ## Setup
 
 ```
-git clone https://github.com/buty4649/osc-fish-complete
-cd osc-fish-complete
-pip install .
+pip install osc-fish-complete
 ```
 
 ## Usage
