@@ -1,3 +1,5 @@
+import re
+
 class CompleteFish:
 
     def __init__(self, name, output):
@@ -13,7 +15,7 @@ class CompleteFish:
             subcommand = subcommand.replace('_', ' ')
             if complete.startswith("-"):
                 for opt in complete.split(" "):
-                    o = opt.replace("-", "")
+                    o = re.sub("^--", "", opt)
                     if opt.startswith("--"):
                         self.output.write(
                             "complete -c openstack -f -n '__fish_seen_subcommand_from {0}' -l '{1}'\n".format(subcommand, o))
